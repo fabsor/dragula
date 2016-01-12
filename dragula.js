@@ -137,15 +137,41 @@ function dragula (initialContainers, options) {
       }
     }
 
-    function lift (el) {
-      var grabbed = _grabbed = canStart(el);
-      if (!grabbed) {
-        return;
-      }
-      _offsetX = _offsetY = 0; // we could calc these on mousemove but 0,0 is simpler
-      startOnLift();
-    }
+    var grabbed = _grabbed; // call to end() unsets _grabbed
+    eventualMovements(true);
+    movements();
+    end();
+    start(grabbed);
 
+    var offset = getOffset(_item);
+    _offsetX = getCoord('pageX', e) - offset.left;
+    _offsetY = getCoord('pageY', e) - offset.top;
+
+    classes.add(_copy || _item, 'gu-transit');
+    renderMirrorImage();
+    drag(e);
+  }
+
+  function lift (el, e) {
+    var grabbed = _grabbed = canStart(el);
+    if (!grabbed) {
+      return;
+    }
+    // Calculate the offset if the user provided an event.
+    if (e) {
+      var offset = getOffset(el);
+      _offsetX = getCoord('pageX', e) - offset.left;
+      _offsetY = getCoord('pageY', e) - offset.top;
+    }
+    else {
+      _offsetX = _offsetY = 0;
+    }
+     // we could calc these on mousemove but 0,0 is simpler
+    startOnLift();
+    if (e) {
+      drag(e);
+    }
+  }
 
   function startOnLift () {
     var grabbed = _grabbed; // call to end() unsets _grabbed
@@ -155,21 +181,6 @@ function dragula (initialContainers, options) {
     start(grabbed);
     classes.add(_copy || _item, 'gu-transit');
     renderMirrorImage();
-  }
-
-  function startBecauseMouseMoved (e) {
-    if (!_grabbed) {
-      return;
-    }
-    if (e.clientX === _moveX && e.clientY === _moveY) {
-      return;
-    }
-    startOnLift();
-
-    var offset = getOffset(_item);
-    _offsetX = getCoord('pageX', e) - offset.left;
-    _offsetY = getCoord('pageY', e) - offset.top;
-    drag(e);
   }
 
   function canStart (item) {
